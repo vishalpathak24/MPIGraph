@@ -20,22 +20,23 @@ class EdgeGraph{
 		map <int, vector <int> > EdgeList;
 
 	public:
-		int pushEdge(int p,int q){
+		void pushEdge(int p,int q){
 			EdgeList[p].push_back(q);
+		
 		}
 
 		vector <int> * pullEdge(int p){
-			if(EgeList.find(p) != EdgeList.end())
+			if(EdgeList.find(p) != EdgeList.end())
 				return &EdgeList[p];
 			else
 				return NULL;
 		}
 
 		int sendEdge(int edgeNo,int d_id,MPI_Comm comm = MPI_COMM_WORLD){
-			vector <int> *edge = pullEdge(p);
+			vector <int> *edge = pullEdge(edgeNo);
 			if(edge != NULL){
 				int len;
-				len = edge.size();
+				len = (*edge).size();
 				assert(MPI_Send(&edgeNo,1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
 				assert(MPI_Send(&len,1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
 				for (int i = 0; i < len ; i++){
@@ -53,10 +54,10 @@ class EdgeGraph{
 		}
 
 		int recvEdge(int s_id,MPI_Comm comm = MPI_COMM_WORLD){
-			int buf,len,p,q;
+			int buff,len,p,q;
 			MPI_Status status;
-			assert(MPI_Recv(&buf,1,MPI_INT,s_id,GRAPH_TAG,comm,&status) == MPI_SUCCESS);
-			if(buf ! = -1){
+			assert(MPI_Recv(&buff,1,MPI_INT,s_id,GRAPH_TAG,comm,&status) == MPI_SUCCESS);
+			if(buff != -1){
 				/* Not NULL CASE */
 				p = buff;
 				assert(MPI_Recv(&len,1,MPI_INT,s_id,GRAPH_TAG,comm,&status) == MPI_SUCCESS);

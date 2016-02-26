@@ -31,15 +31,12 @@ int main(int argc, char** argv){
    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
-   string path = "./facebook_combined.txt"; int Nedges = 88234; int NVertex = 4039;
+   string path = "./facebook_combined.txt"; int Nedges = 88234;
+   //int NVertex = 4039;
 
    int EdgePP = Nedges/nprocs; //Edges per Process;
    int rEdges = Nedges - EdgePP*nprocs;	//Remainder Edges;
    int NEdges;
-
-   int ReachPP = (NVertex*(NVertex - 1))/(2*nprocs);
-   int rReach = ((NVertex*(NVertex - 1))/2) - ReachPP;
-   int NReach;
 
    if(myrank < rEdges){
 	   NEdges = EdgePP + 1;
@@ -97,7 +94,7 @@ int main(int argc, char** argv){
 
 #if _DBG_
    cout<<"**PRINTING EDGE MAP**\n";
-   for(int i=0;i<edgeMap.size();i++){
+   for(int i=0;i<(int)edgeMap.size();i++){
       cout<<"For process ="<<i<<" p="<<edgeMap[i].p<<" q="<<edgeMap[i].q<<"\n";
    }
 #endif
@@ -106,11 +103,11 @@ int main(int argc, char** argv){
 
 if(myrank != ROOT_PR){
    /* 0th process will not send anything */
-    eGraph.SendEdge(edgeMap[myrank-1].p,myrank-1); //Sends -1 signal if nothing to be sent
+    eGraph.sendEdge(edgeMap[myrank-1].p,myrank-1); //Sends -1 signal if nothing to be sent
 }
 if(myrank != (nprocs -1)){
    /* Last Process will not receive any edges */
-   eGraph.RecvEdge(myrank+1);
+   eGraph.recvEdge(myrank+1);
 }
 
    
@@ -119,9 +116,8 @@ if(myrank != (nprocs -1)){
 }
 
 int processID(vector <Edge> &edgeMap,int vertex){
-   int flag=0;
    int i;
-   for(i=0;i<edgeMap.size()-1;i++){
+   for(i=0;i<(int)(edgeMap.size()-1);i++){
       if(edgeMap[i].p > vertex)
          return i;
       if(edgeMap[i].p == vertex) /* vertex is in border */
