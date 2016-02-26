@@ -113,51 +113,6 @@ if(myrank != (nprocs -1)){
    eGraph.RecvEdge(myrank+1);
 }
 
-
-/** Transitive closure Devloping Distributed Reachablity Matrix **/
-
-int reachRank=0; //reachRank hold rank value from where this process should begin reachablity test
-if(myrank < rReach){
-      NReach = ReachPP + 1;
-   }else{
-      NEdges = ReachPP;
-   }
-
-for(int i=0;i<myrank;i++){
-   if(i<rReach){
-      reachRank = reachRank + (ReachPP + 1);
-   }else{
-      reachRank += ReachPP;
-   }
-}
-
-int startp=0,startq=0;
-for(p=0;p<NVertex-1;p++){
-   int pp1Rank = p*(2*NVertex - (p+1))/2; //Rank of (p,p+1)
-   if(pp1Rank > reachRank){
-      startp = p-1;
-      p--;
-      break;
-   }
-   if(pp1Rank == reachRank){
-      startp = p;
-      startq = p+1;
-      break;
-   }
-}
-
-if( startq == 0){
-   /* Need to find q */
-   int pp1Rank =  startp*(2*NVertex - (startp+1))/2; //Rank of (p,p+1)
-   assert(pp1Rank < reachRank);
-   for(startq = startp + 1;pp1Rank < reachRank;pp1Rank++,startq++);
-   //startq now holds correct q to compare 
-}
-
-#if _DBG_
-   cout<<"I will start comparing from ("<<startp<<","<<startq<<")\n";
-#endif
-
    
    MPI_Finalize();
 	return 0;
