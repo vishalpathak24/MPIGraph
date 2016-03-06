@@ -1,3 +1,8 @@
+/*
+ * Author : Vishal Pathak
+ * Topic : Transitive Colsure in Distributed Vertex Graph
+ */
+ 
 #include <iostream>
 #include <fstream>
 #include <mpi.h>
