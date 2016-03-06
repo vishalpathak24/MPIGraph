@@ -6,7 +6,7 @@
 #include <assert.h>
 
 /** PROGRAM COMTROL DEFS **/
-#define _DBG_ 0
+#define _DBG_ 1
 
 
 /** DEFINING CONSTANTS **/
@@ -57,7 +57,7 @@ int main(int argc, char** argv){
    }
 
 #if _DBG_
-   cout<<"My startk = "<<startk<<"\n My endk ="<<endk;
+   cout<<"My startk = "<<startk<<"\n My endk ="<<endk<<'\n';
 #endif
 
    ifstream graph_file;
@@ -72,7 +72,11 @@ int main(int argc, char** argv){
    do{
       n++;
       eGraph.pushEdge(p,q);
-      graph_file>>p>>q;
+      if(!graph_file.eof())
+         graph_file>>p>>q;
+      else
+         break;
+
       line++;   
    }while(p<=endk);
 
@@ -81,6 +85,8 @@ int main(int argc, char** argv){
 #if _DBG_
    eGraph.printGraph();
 #endif
+
+   MPI_Barrier(MPI_COMM_WORLD);
 
 /* creating copy of Edge Graph */
    EdgeGraph tcGraph = eGraph;   //Transitive Closure Graph
