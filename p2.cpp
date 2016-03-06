@@ -4,10 +4,11 @@
 #include <string>
 #include <vector>
 #include <assert.h>
+#include <time.h>
 
 /** PROGRAM COMTROL DEFS **/
-#define _DBG_ 1
-
+#define _DBG_ 0
+#define _TIMECALC_ 1
 
 /** DEFINING CONSTANTS **/
 #define ROOT_PR 0
@@ -94,6 +95,13 @@ int main(int argc, char** argv){
    EdgeGraph toSendGraph;        // Temp Graph keeping edges to be sent
    bool nxtRound = false;
    
+#if _TIMECALC_
+   struct timespec startTime;
+   if(myrank == ROOT_PR){
+      assert(clock_gettime(CLOCK_MONOTONIC,&startTime) == 0);
+   }
+#endif
+
    do{
 #if _DBG_
    cout<<"Rounds Running .... \n";
@@ -180,6 +188,14 @@ int main(int argc, char** argv){
       nxtRound = nxtRoundBuff;
 
    }while(nxtRound==true);
+
+#if _TIMECALC_
+   if(myrank == ROOT_PR){
+      struct timespec endTime;
+      assert(clock_gettime(CLOCK_MONOTONIC,&endTime) == 0);
+      cout<<"Diffrence is time is"<<endTime.tv_nsec-startTime.tv_nsec<<'\n';
+   }
+#endif
 
 #if _DBG_
    cout<<"Rounds Complete... X \n Graph is \n";
