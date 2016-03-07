@@ -40,7 +40,7 @@ int main(int argc, char** argv){
    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
-#ifdef _DBG_
+#if _DBG_
    cout<<"myrank is "<<myrank<<'\n';
 #endif
 
@@ -115,7 +115,9 @@ int pbuff,qbuff;
       eGraph.recvEdges(myrank+1);
    }
 
+#if _DBG_
    eGraph.printLast();
+#endif
 
    /* Updating edgeMap */
    edgeMap.clear();
@@ -261,8 +263,9 @@ int pbuff,qbuff;
 
 #if _DBG_
    cout<<"Rounds Complete... X \n Graph is \n";
-#endif
    tcGraph.printGraph();
+#endif
+   
 
 
    MPI_Finalize();
