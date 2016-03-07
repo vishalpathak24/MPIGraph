@@ -35,7 +35,6 @@ int main(int argc, char** argv){
    EdgeGraph eGraph;
    vector <Edge> edgeMap; //Maintains last edge of each process
 
-
    MPI_Init(&argc, &argv);
    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
@@ -161,9 +160,10 @@ int pbuff,qbuff;
    bool nxtRound = false;
 
 #if _TIMECALC_
-   struct timespec startTime;
+   MPI_Barrier(MPI_COMM_WORLD);
+   double startTime;
    if(myrank == ROOT_PR){
-      assert(clock_gettime(CLOCK_MONOTONIC,&startTime) == 0);
+      startTime = MPI_Wtime();
    }
 #endif
    
@@ -254,10 +254,17 @@ int pbuff,qbuff;
    }while(nxtRound==true);
 
 #if _TIMECALC_
+   MPI_Barrier(MPI_COMM_WORLD);
    if(myrank == ROOT_PR){
-      struct timespec endTime;
-      assert(clock_gettime(CLOCK_MONOTONIC,&endTime) == 0);
-      cout<<"Diffrence is time is"<<endTime.tv_nsec-startTime.tv_nsec<<'\n';
+      double endTime;
+      endTime = MPI_Wtime();
+      int nNodes=1;
+      cout<<"Enter No of Nodes";
+      cin>>nNodes;
+      cout<<"Diffrence is time is"<<endTime-startTime<<'\n';
+      ofstream timingFile("./Timingresult_edge.txt",ofstream::app);
+      timingFile<<nNodes<<','<<nprocs<<','<<endTime-startTime<<'\n';
+      timingFile.close();
    }
 #endif
 

@@ -101,9 +101,10 @@ int main(int argc, char** argv){
    bool nxtRound = false;
    
 #if _TIMECALC_
-   struct timespec startTime;
+   MPI_Barrier(MPI_COMM_WORLD);
+   double startTime;
    if(myrank == ROOT_PR){
-      assert(clock_gettime(CLOCK_MONOTONIC,&startTime) == 0);
+      startTime = MPI_Wtime();
    }
 #endif
 
@@ -195,10 +196,17 @@ int main(int argc, char** argv){
    }while(nxtRound==true);
 
 #if _TIMECALC_
+   MPI_Barrier(MPI_COMM_WORLD);
    if(myrank == ROOT_PR){
-      struct timespec endTime;
-      assert(clock_gettime(CLOCK_MONOTONIC,&endTime) == 0);
-      cout<<"Diffrence is time is"<<endTime.tv_nsec-startTime.tv_nsec<<'\n';
+      double endTime;
+      endTime = MPI_Wtime();
+      int nNodes;
+      cout<<"Enter No of Nodes";
+      cin>>nNodes;
+      cout<<"Diffrence is time is"<<endTime-startTime<<'\n';
+      ofstream timingFile("./Timingresult_vert.txt",ofstream::app);
+      timingFile<<nNodes<<','<<nprocs<<','<<endTime-startTime<<'\n';
+      timingFile.close();
    }
 #endif
 
@@ -206,6 +214,7 @@ int main(int argc, char** argv){
    cout<<"Rounds Complete... X \n Graph is \n";
    tcGraph.printGraph();
 #endif
+
    
 
 
