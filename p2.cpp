@@ -14,6 +14,7 @@
 /** PROGRAM COMTROL DEFS **/
 #define _DBG_ 0
 #define _TIMECALC_ 1
+#define _CLUSTER_OUT_ 1
 
 /** DEFINING CONSTANTS **/
 #define ROOT_PR 0
@@ -44,11 +45,22 @@ int main(int argc, char** argv){
    cout<<"myrank is "<<myrank<<'\n';
 #endif
 
-   /*string path = "./facebook_combined.txt"; int Nedges = 88234;
-   int NVertex = 4039;*/
+#if _CLUSTER_OUT_
+   ofstream globalStatus;
+   char buff[30];
+   sprintf(buff,"./VertexOutput/status_%d.txt",myrank);
+   ofstream myStatus((const char*)buff,ofstream::out);
+   if(myrank == ROOT_PR){
+      globalStatus.open("./VertexOutput/status.txt",ofstream::out);
+      globalStatus<<"We have started \n";
+   }
+#endif
 
-   string path = "./small_graph.txt"; //int Nedges = 16;
-   int NVertex = 9;
+   string path = "./facebook_combined.txt";//int Nedges = 88234;
+   int NVertex = 4039;
+
+   /*string path = "./small_graph.txt"; //int Nedges = 16;
+   int NVertex = 9;*/
    int NVertexPP = NVertex/nprocs;
    int NVertexRem = NVertex - NVertexPP*nprocs;
 
@@ -64,6 +76,10 @@ int main(int argc, char** argv){
 
 #if _DBG_
    cout<<"My startk = "<<startk<<"\n My endk ="<<endk<<'\n';
+#endif
+
+#if _CLUSTER_OUT_
+   myStatus<<"My startk = "<<startk<<"\n my endk = "<<endk<<endl;
 #endif
 
    ifstream graph_file;
@@ -108,9 +124,19 @@ int main(int argc, char** argv){
    }
 #endif
 
+#if _CLUSTER_OUT_
+   long unsigned int roundCount =0;
+#endif 
+
    do{
 #if _DBG_
    cout<<"Rounds Running .... \n";
+#endif
+
+#if _CLUSTER_OUT_
+   if(myrank == ROOT_PR){
+      globalStatus<<"Round "<<++roundCount<<" started \n";
+   }
 #endif
 
       nxtRound = false;
@@ -194,6 +220,15 @@ int main(int argc, char** argv){
       nxtRound = nxtRoundBuff;
 
    }while(nxtRound==true);
+
+#if _CLUSTER_OUT_
+   if(myrank == ROOT_PR){
+      globalStatus<<"Round has Ended \n";
+      globalStatus.close();
+   }
+   myStatus.close();
+#endif
+
 
 #if _TIMECALC_
    MPI_Barrier(MPI_COMM_WORLD);
