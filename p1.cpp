@@ -194,6 +194,7 @@ int pbuff,qbuff;
 #if _CLUSTER_OUT_
    if(myrank == ROOT_PR){
       globalStatus<<"Round "<<++roundCount<<" started \n";
+      cout<<"Round "<<roundCount<<" started \n";
    }
 #endif
 
