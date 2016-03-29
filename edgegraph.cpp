@@ -18,27 +18,17 @@ typedef struct Edge{
 
 class EdgeGraph{
 	private:
-		//map <int, vector <int> > EdgeList;
-		bool *EdgeList;
-		int *NEdges; //Number of Edges from a vertex btw (k_min to k_max)
-
+		map <int, vector <int> > EdgeList;
+		
 	public:
 		int lastp;
 		int lastq;
-		int k_max;
-		int k_min;
-		int N_Vertex;
 		
 		typedef map<int, vector <int> >::iterator iterator;
 
-		EdgeGraph(int k_min,int k_max,int N_Vertex){
+		EdgeGraph(){
 			lastp=-1;
-			lastq=-1;
-			this.k_max = k_max;
-			this.k_min = k_min;
-			EdgeList = (bool *)callac((k_max-k_min)*sizeof(bool)); //initialize with zero
-			NEdges = (int *)callac((k_max-k_min)*sizeof(int)); //initialize with zero
-			this.N_Vertex = N_Vertex;
+			lastq=-1;			
 		}
 
 		/* copy Constructor */
@@ -46,58 +36,39 @@ class EdgeGraph{
 			this->EdgeList = graph.EdgeList;
 			this->lastp = graph.lastp;
 			this->lastq = graph.lastq;
-			this->k_max = graph.k_max;
-			this->k_min = graph.k_min;
-			this.N_Vertex = graph.N_Vertex;
 		}
 
 		void pushEdge(int p,int q){
-			int i,j;
-			bool oldEdge = this->EdgeList[p-k_min][q];
-
-			if(p>= k_min && p<=k_min){/* P is btw k */
-				this->EdgeList[p-k_min][q] = true;
-			}
-
-			else{
-				if(q>= k_min && q<=k_min){
-					i=q;
-					j=p;
-				}else{
-					cout<<"\n OOPS I have to insert Edge which I am not assigned for exiting ....";
-					exit(-1);
-				}
-
-			}
-			if(this->EdgeList[i-k_min][j] == false){
-				this->EdgeList[i-k_min][j] = true;
-				this->NEdges[i-kmin]++;
-			}
-
-			if (p >= lastp){
-				lastp = p;
-				lastq = q;
-			}
-			if ( p == lastp){
-				if(q > lastq)
+			if(!this->hasEdge(p,q)){
+				EdgeList[p].push_back(q);
+				if (p >= lastp){
+					lastp = p;
 					lastq = q;
+				}
+				if ( p == lastp){
+					if(q > lastq)
+						lastq = q;
+				}
 			}
 		}
 
-		int * pullEdge(int p){
+		vector <int> * pullEdge(int p){
 			
 			if(p == lastp){ /* this case is not handled */
 			lastp = -1; /* Reset lastp */
 			}
 			
-			return this->EdgeList[p-k_min];
+			if(EdgeList.find(p) != EdgeList.end())
+				return &EdgeList[p];
+			else
+				return NULL;
 		}
 
 		int sendEdges(int edgeNo,int d_id,MPI_Comm comm = MPI_COMM_WORLD){
-			int *edge = pullEdge(edgeNo);
-			if(NEdges[edgeNo-k_min] != 0){
+			vector <int> *edge = pullEdge(edgeNo);
+			if(edge != NULL){
 				int len;
-				len = NEdges[edgeNo-k_min];
+				len = (*edge).size();
 				assert(MPI_Send(&edgeNo,1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
 				assert(MPI_Send(&len,1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
 				for (int i = 0; i < len ; i++){
@@ -107,9 +78,9 @@ class EdgeGraph{
 #endif
 				}
 				/* clearing edge sent */
-				// (*edge).clear();
-				// iterator it = EdgeList.find(edgeNo);
-				// EdgeList.erase(it);
+				(*edge).clear();
+				iterator it = EdgeList.find(edgeNo);
+				EdgeList.erase(it);
 
 
 			}else{
@@ -139,20 +110,7 @@ class EdgeGraph{
 		}
 
 	bool hasEdge(int p,int q){
-		if(p <= k_max && p>=k_min){
-			return this->EdgeList[p][q];
-		}else{
-			if(q <= k_max && q>=k_min)
-				return this->EdgeList[q][p];
-			else{
-				cout<<"ASKED FOR OUT OF K EDGE TERMINATING....\n";
-				exit(-1);
-			}
-
-		}
-
-		return false;
-		
+		return EdgeList.find(p) != EdgeList.end() && find(EdgeList[p].begin(),EdgeList[p].end(),q) != EdgeList[p].end();
 	}
 
 	iterator begin(){
