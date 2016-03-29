@@ -4,15 +4,10 @@
 #include <mpi.h>
 #include <assert.h>
 #include <algorithm>
+#include <stdlib.h> //calloc 
 
 using namespace std;
 
-#ifndef Edge
-typedef struct Edge{
-	int p;
-	int q;
-}Edge;
-#endif
 
 #ifndef GRAPH_TAG
 #define GRAPH_TAG 2
@@ -22,7 +17,7 @@ typedef struct Edge{
 class DistGraph{
 	private:
 		//map <int, vector <int> > EdgeList;
-		bool *EdgeList;
+		bool **EdgeList;
 		int *NEdges; //Number of Edges from a vertex btw (k_min to k_max)
 
 	public:
@@ -35,22 +30,13 @@ class DistGraph{
 		DistGraph(int k_min,int k_max,int N_Vertex){
 			lastp=-1;
 			lastq=-1;
-			this.k_max = k_max;
-			this.k_min = k_min;
-			EdgeList = (bool *)callac((k_max-k_min)*sizeof(bool)); //initialize with zero
-			NEdges = (int *)callac((k_max-k_min)*sizeof(int)); //initialize with zero
-			this.N_Vertex = N_Vertex;
+			this->k_max = k_max;
+			this->k_min = k_min;
+			EdgeList = (bool **)calloc((k_max-k_min),sizeof(bool)); //initialize with zero
+			NEdges = (int *)calloc((k_max-k_min),sizeof(int)); //initialize with zero
+			this->N_Vertex = N_Vertex;
 		}
 
-		/* copy Constructor */
-		EdgeGraph(const EdgeGraph &graph){
-			this->EdgeList = graph.EdgeList;
-			this->lastp = graph.lastp;
-			this->lastq = graph.lastq;
-			this->k_max = graph.k_max;
-			this->k_min = graph.k_min;
-			this.N_Vertex = graph.N_Vertex;
-		}
 
 		bool pushEdge(int p,int q){/* Returns True if pushEdge Created New Edge, can be used for finding if next round is needed*/
 			int i,j;
@@ -59,7 +45,7 @@ class DistGraph{
 			if(p>= k_min && p<=k_min){/* P is btw k */
 				this->EdgeList[p-k_min][q] = true;
 			}else{
-				cout<<"THIS EDGE IS NOT MY RESPONSIBLITY .... Edge given to me "(<<p<<","<<q<<")\n";
+				cout<<"THIS EDGE IS NOT MY RESPONSIBLITY .... Edge given to me ("<<p<<","<<q<<")\n";
 				exit(-1);
 			}
 
@@ -83,16 +69,6 @@ class DistGraph{
 			}
 			return false;
 		}
-
-		int * pullEdge(int p){
-			
-			if(p == lastp){ /* this case is not handled */
-			lastp = -1; /* Reset lastp */
-			}
-			
-			return this->EdgeList[p-k_min];
-		}
-
 	
 	bool hasEdge(int p,int q){
 	

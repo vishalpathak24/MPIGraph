@@ -11,10 +11,13 @@ using namespace std;
 #define GRAPH_TAG 2
 #endif
 
+#ifndef Edge
 typedef struct Edge{
 	int p;
 	int q;
 }Edge;
+#endif
+
 
 class EdgeGraph{
 	private:

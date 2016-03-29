@@ -12,7 +12,7 @@
 
 
 /** PROGRAM COMTROL DEFS **/
-#define _DBG_ 0
+#define _DBG_ 1
 #define _TIMECALC_ 1
 #define _CLUSTER_OUT_ 1
 
@@ -174,7 +174,7 @@ int pbuff,qbuff;
    DistGraph tcGraph(startk,endk,NVertex);//Transitive Closure Graph
 /* Initilizing DistGraph */
    for(EdgeGraph::iterator it = eGraph.begin();it != eGraph.end();it++){
-      vector *edge = eGraph.getEdge(it->first);
+      vector <int> *edge = eGraph.getEdge(it->first);
       for(int i=0;i<(*edge).size();i++){
          tcGraph.pushEdge(it->first,(*edge)[i]);
       }
@@ -183,7 +183,7 @@ int pbuff,qbuff;
 
 //   EdgeGraph tempGraph;                   //Keeps generated Edges for further comparison
    EdgeGraph toSendGraph;                 // Temp Graph keeping edges to be sent
-   bool nxtRound = false,flgBuff;
+   bool nxtRound = false,flagBuff;
 
     
 
@@ -224,8 +224,8 @@ int pbuff,qbuff;
 #if _DBG_
                         cout<<"Adding a edge ("<<i<<','<<j<<") \n";
 #endif                        
-                        flgBuff = tcGraph.pushEdge(i,j);
-                        nxtRound = nxtRound||flgBuff;
+                        flagBuff = tcGraph.pushEdge(i,j);
+                        nxtRound = nxtRound||flagBuff;
 
                      }else{
                         //if(!tempGraph.hasEdge(i,j)){
@@ -242,6 +242,7 @@ int pbuff,qbuff;
       }
               
       /* Sending/Recv of Edges prepared */
+
       for(int i=0;i<nprocs;i++){
          if(myrank == i){
             for(int j=0;j<nprocs;j++){
@@ -324,7 +325,7 @@ int pbuff,qbuff;
 
 #if _DBG_
    cout<<"Rounds Complete... X \n Graph is \n";
-   tcGraph.printGraph();
+   //tcGraph.printGraph();
 #endif
    
 
