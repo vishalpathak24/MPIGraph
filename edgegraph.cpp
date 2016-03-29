@@ -64,6 +64,15 @@ class EdgeGraph{
 				return NULL;
 		}
 
+		vector <int> * getEdge(int p){
+			/* Does Not remove the Edge Detail from Graph */
+			if(EdgeList.find(p) != EdgeList.end())
+				return &EdgeList[p];
+			else
+				return NULL;
+
+		}
+
 		int sendEdges(int edgeNo,int d_id,MPI_Comm comm = MPI_COMM_WORLD){
 			vector <int> *edge = pullEdge(edgeNo);
 			if(edge != NULL){

@@ -22,6 +22,7 @@
 
 #define _USE_HEADER_
 #include "edgegraph.cpp"
+#include "distgraph.cpp"
 
 
 
@@ -170,10 +171,21 @@ int pbuff,qbuff;
 #endif
 
 /* creating copy of Edge Graph */
-   EdgeGraph tcGraph = eGraph;   //Transitive Closure Graph
-   EdgeGraph tempGraph;          //Keeps generated Edges for further comparison
-   EdgeGraph toSendGraph;        // Temp Graph keeping edges to be sent
-   bool nxtRound = false;
+   DistGraph tcGraph(startk,endk,NVertex);//Transitive Closure Graph
+/* Initilizing DistGraph */
+   for(EdgeGraph::iterator it = eGraph.begin();it != eGraph.end();it++){
+      vector *edge = eGraph.getEdge(it->first);
+      for(int i=0;i<(*edge).size();i++){
+         tcGraph.pushEdge(it->first,(*edge)[i]);
+      }
+
+   }
+
+//   EdgeGraph tempGraph;                   //Keeps generated Edges for further comparison
+   EdgeGraph toSendGraph;                 // Temp Graph keeping edges to be sent
+   bool nxtRound = false,flgBuff;
+
+    
 
 #if _TIMECALC_
    MPI_Barrier(MPI_COMM_WORLD);
@@ -186,6 +198,8 @@ int pbuff,qbuff;
 #if _CLUSTER_OUT_
    long unsigned int roundCount =0;
 #endif   
+   
+
    do{
 #if _DBG_
    cout<<"Rounds Running .... \n";
@@ -210,14 +224,15 @@ int pbuff,qbuff;
 #if _DBG_
                         cout<<"Adding a edge ("<<i<<','<<j<<") \n";
 #endif                        
-                        tcGraph.pushEdge(i,j);
-                        nxtRound = true;
+                        flgBuff = tcGraph.pushEdge(i,j);
+                        nxtRound = nxtRound||flgBuff;
+
                      }else{
-                        if(!tempGraph.hasEdge(i,j)){
-                           tempGraph.pushEdge(i,j);
+                        //if(!tempGraph.hasEdge(i,j)){
+                        //   tempGraph.pushEdge(i,j);
                            toSendGraph.pushEdge(i,j);
-                           nxtRound = true;
-                        }
+                        //   nxtRound = true; Next Round will be decided in end of receiving edges
+                        //}
                      }
                      
                   }
@@ -234,8 +249,10 @@ int pbuff,qbuff;
                   int newNodes;
                   MPI_Status status;
                   MPI_Recv(&newNodes,1,MPI_INT,j,GRAPH_TAG,MPI_COMM_WORLD,&status);
-                  for(int temp = 0;temp<newNodes;temp++)
-                     tcGraph.recvEdges(j); 
+                  for(int temp = 0;temp<newNodes;temp++){
+                     flagBuff=tcGraph.recvEdges(j);
+                     nxtRound = nxtRound || flagBuff; 
+                  }
                }
             }
          }else{
