@@ -32,7 +32,10 @@ class DistGraph{
 			lastq=-1;
 			this->k_max = k_max;
 			this->k_min = k_min;
-			EdgeList = (bool **)calloc((k_max-k_min),sizeof(bool)); //initialize with zero
+			EdgeList = (bool **)calloc((k_max-k_min)+1,sizeof(bool)); //initialize with zero
+			for(int i=0;i<=(k_max-k_min);i++)
+				EdgeList[i] = (bool *)calloc(N_Vertex,sizeof(bool));
+
 			NEdges = (int *)calloc((k_max-k_min),sizeof(int)); //initialize with zero
 			this->N_Vertex = N_Vertex;
 		}
@@ -40,17 +43,24 @@ class DistGraph{
 
 		bool pushEdge(int p,int q){/* Returns True if pushEdge Created New Edge, can be used for finding if next round is needed*/
 			int i,j;
+
 			bool oldEdge = this->EdgeList[p-k_min][q];
 
-			if(p>= k_min && p<=k_min){/* P is btw k */
-				this->EdgeList[p-k_min][q] = true;
+			if(p>= k_min && p<=k_max){/* P is btw k */
+#if _DBG_
+				cout<<"putting Edge ...\n ";
+#endif
+				EdgeList[p-k_min][q] = true;
+#if _DBG_
+				cout<<"putted Edge ...\n ";
+#endif
 			}else{
 				cout<<"THIS EDGE IS NOT MY RESPONSIBLITY .... Edge given to me ("<<p<<","<<q<<")\n";
 				exit(-1);
 			}
 
 
-			if(q>= k_min && q<=k_min)/* Symmetric data is kept by this process only */
+			if(q>= k_min && q<=k_max)/* Symmetric data is kept by this process only */
 				this->EdgeList[q-k_min][p] = true;
 			
 			if (p >= lastp){

@@ -14,7 +14,7 @@
 /** PROGRAM COMTROL DEFS **/
 #define _DBG_ 1
 #define _TIMECALC_ 1
-#define _CLUSTER_OUT_ 1
+#define _CLUSTER_OUT_ 0
 
 /** DEFINING CONSTANTS **/
 #define ROOT_PR 0
@@ -56,11 +56,11 @@ int main(int argc, char** argv){
    }
 #endif
 
-   string path = "./facebook_combined.txt"; int Nedges = 2*88234;
-   int NVertex = 4039;
+   /*string path = "./facebook_combined.txt"; int Nedges = 2*88234;
+   int NVertex = 4039;*/
 
-   /*string path = "./small_graph.txt"; int Nedges = 16;
-   int NVertex = 9;*/
+   string path = "./small_graph.txt"; int Nedges = 16;
+   int NVertex = 9;
 
    int EdgePP = Nedges/nprocs; //Edges per Process;
    int rEdges = Nedges - EdgePP*nprocs;	//Remainder Edges;
@@ -173,16 +173,27 @@ int pbuff,qbuff;
 /* creating copy of Edge Graph */
    DistGraph tcGraph(startk,endk,NVertex);//Transitive Closure Graph
 /* Initilizing DistGraph */
+
+#if _DBG_
+   cout<<"Initilizing Transitive closure graph \n";
+#endif
    for(EdgeGraph::iterator it = eGraph.begin();it != eGraph.end();it++){
       vector <int> *edge = eGraph.getEdge(it->first);
       for(int i=0;i<(*edge).size();i++){
+#if _DBG_
+         cout<<"putting Edge ("<<it->first<<","<<(*edge)[i]<<")\n";
+#endif
          tcGraph.pushEdge(it->first,(*edge)[i]);
       }
-
    }
 
+
+#if _DBG_
+   cout<<"Initilization Transitive closure graph Done \n";
+#endif
+
 //   EdgeGraph tempGraph;                   //Keeps generated Edges for further comparison
-   EdgeGraph toSendGraph;                 // Temp Graph keeping edges to be sent
+   EdgeGraph toSendGraph;                   // Temp Graph keeping edges to be sent
    bool nxtRound = false,flagBuff;
 
     
@@ -242,7 +253,9 @@ int pbuff,qbuff;
       }
               
       /* Sending/Recv of Edges prepared */
-
+#if _DBG_
+      cout<<"Sending and receiving New Edges prepared.. \n";
+#endif
       for(int i=0;i<nprocs;i++){
          if(myrank == i){
             for(int j=0;j<nprocs;j++){
