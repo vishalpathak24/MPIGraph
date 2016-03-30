@@ -56,11 +56,11 @@ int main(int argc, char** argv){
    }
 #endif
 
-   /*string path = "./facebook_combined.txt"; int Nedges = 2*88234;
-   int NVertex = 4039;*/
+   string path = "./facebook_combined.txt"; int Nedges = 2*88234;
+   int NVertex = 4039;
 
-   string path = "./small_graph.txt"; int Nedges = 16;
-   int NVertex = 9;
+   /*string path = "./small_graph.txt"; int Nedges = 16;
+   int NVertex = 9;*/
 
    int EdgePP = Nedges/nprocs; //Edges per Process;
    int rEdges = Nedges - EdgePP*nprocs;	//Remainder Edges;
@@ -194,7 +194,8 @@ int pbuff,qbuff;
 
 //   EdgeGraph tempGraph;                   //Keeps generated Edges for further comparison
    EdgeGraph toSendGraph;                   // Temp Graph keeping edges to be sent
-   bool nxtRound = false,flagBuff;
+   bool nxtRound = true,flagBuff;
+   bool nxtRoundBuff = false;
 
     
 
@@ -222,36 +223,36 @@ int pbuff,qbuff;
       cout<<"Round "<<roundCount<<" started \n";
    }
 #endif
-
-      nxtRound = false;
-      
-      for(int k=startk;k<=endk;k++){
-         for(int i=0;i<NVertex;i++){
-            if(tcGraph.hasEdge(k,i)){
-               for(int j=0;j<NVertex;j++){
-                  if( i != j && tcGraph.hasEdge(k,j) ){ // M[i][k] and M[k][i]
-                     
-                     if(i>= startk && i<=endk && !tcGraph.hasEdge(i,j)){
+      if(nxtRound == true){ /* if we prepared that nextRound is not required this process don't have any new edges to process */
+         nxtRound = false;
+         
+         for(int k=startk;k<=endk;k++){
+            for(int i=0;i<NVertex;i++){
+               if(tcGraph.hasEdge(k,i)){
+                  for(int j=0;j<NVertex;j++){
+                     if( i != j && tcGraph.hasEdge(k,j) ){ // M[i][k] and M[k][i]
+                        
+                        if(i>= startk && i<=endk && !tcGraph.hasEdge(i,j)){
 #if _DBG_
-                        cout<<"Adding a edge ("<<i<<','<<j<<") \n";
+                           cout<<"Adding a edge ("<<i<<','<<j<<") \n";
 #endif                        
-                        flagBuff = tcGraph.pushEdge(i,j);
-                        nxtRound = nxtRound||flagBuff;
+                           flagBuff = tcGraph.pushEdge(i,j);
+                           nxtRound = nxtRound||flagBuff;
 
-                     }else{
-                        //if(!tempGraph.hasEdge(i,j)){
-                        //   tempGraph.pushEdge(i,j);
-                           toSendGraph.pushEdge(i,j);
-                        //   nxtRound = true; Next Round will be decided in end of receiving edges
-                        //}
+                        }else{
+                           //if(!tempGraph.hasEdge(i,j)){
+                           //   tempGraph.pushEdge(i,j);
+                              toSendGraph.pushEdge(i,j);
+                           //   nxtRound = true; Next Round will be decided in end of receiving edges
+                           //}
+                        }
+                        
                      }
-                     
                   }
                }
             }
          }
-      }
-              
+      }        
       /* Sending/Recv of Edges prepared */
 #if _DBG_
       cout<<"Sending and receiving New Edges prepared.. \n";
@@ -301,14 +302,13 @@ int pbuff,qbuff;
       toSendGraph.clear();
 
       /* Deciding of NextRound */ 
-      bool nxtRoundBuff;
+      nxtRoundBuff=false;
 #if _DBG_
-      cout<<"nxtRound = "<<nxtRound<<'\n';
+      cout<<"My nxtRound = "<<nxtRound<<'\n';
 #endif      
       MPI_Allreduce(&nxtRound,&nxtRoundBuff,1,MPI::BOOL,MPI_LOR,MPI_COMM_WORLD);
-      nxtRound = nxtRoundBuff;
 
-   }while(nxtRound==true);
+   }while(nxtRoundBuff==true);
 
 #if _CLUSTER_OUT_
    if(myrank == ROOT_PR){
@@ -332,17 +332,16 @@ int pbuff,qbuff;
       timingFile<<nNodes<<','<<nprocs<<','<<endTime-startTime<<'\n';
       timingFile.close();
    }
+   MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
 
 
 #if _DBG_
    cout<<"Rounds Complete... X \n Graph is \n";
-   //tcGraph.printGraph();
+   tcGraph.printGraph();
 #endif
    
-
-
    MPI_Finalize();
 	return 0;
 }

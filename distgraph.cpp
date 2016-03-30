@@ -43,17 +43,14 @@ class DistGraph{
 
 		bool pushEdge(int p,int q){/* Returns True if pushEdge Created New Edge, can be used for finding if next round is needed*/
 			int i,j;
+#if _DBG_
+		cout<<"put Edge ("<<p<<','<<q<<")\n";
+#endif
 
 			bool oldEdge = this->EdgeList[p-k_min][q];
 
 			if(p>= k_min && p<=k_max){/* P is btw k */
-#if _DBG_
-				cout<<"putting Edge ...\n ";
-#endif
 				EdgeList[p-k_min][q] = true;
-#if _DBG_
-				cout<<"putted Edge ...\n ";
-#endif
 			}else{
 				cout<<"THIS EDGE IS NOT MY RESPONSIBLITY .... Edge given to me ("<<p<<","<<q<<")\n";
 				exit(-1);
@@ -81,9 +78,11 @@ class DistGraph{
 		}
 	
 	bool hasEdge(int p,int q){
-	
+#if _DBG_
+		//cout<<"has Edge ("<<p<<','<<q<<")\n";
+#endif
 		if(p <= k_max && p>=k_min){
-			return this->EdgeList[p][q];
+			return this->EdgeList[p-k_min][q];
 		}else{
 			cout<<"ASKED FOR OUT OF K EDGE TERMINATING....\n";
 			exit(-1);
@@ -113,6 +112,14 @@ class DistGraph{
 				}
 			}
 			return flag;
+	}
+
+	void printGraph(){
+		cout<<"PRINTING DISTRIBUTED GRAPH.. \n";	
+		for(int k=k_min;k<=k_max;k++)
+			for(int j=0;j<N_Vertex;j++)
+				if(this->hasEdge(k,j))
+					cout<<"("<<k<<','<<j<<")\n";
 	}
 
 };
