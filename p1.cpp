@@ -10,7 +10,6 @@
 #include <assert.h>
 #include <time.h>
 
-
 /** PROGRAM COMTROL DEFS **/
 #define _DBG_ 1
 #define _TIMECALC_ 1
@@ -56,7 +55,7 @@ int main(int argc, char** argv){
    }
 #endif
 
-   string path = "./facebook_combined.txt"; int Nedges = 2*88234;
+   string path = "./facebook_combined_new.txt"; int Nedges = 2*88234;
    int NVertex = 4039;
 
    /*string path = "./small_graph.txt"; int Nedges = 16;
@@ -102,6 +101,10 @@ int main(int argc, char** argv){
    graph_file.close();
 
 /* Redistributing Edges */
+#if _DBG_
+   cout<<"Printing the Graph before Redistributing I have \n";
+   eGraph.printGraph();
+#endif
 
 int pbuff,qbuff;
    
@@ -117,6 +120,12 @@ int pbuff,qbuff;
       e.q = qbuff;
       edgeMap.push_back(e);  
    }
+#if _DBG_
+   cout<<"**PRINTING TEMP EDGE MAP**\n";
+   for(unsigned int i=0;i<edgeMap.size();i++){
+      cout<<"For process ="<<i<<" p="<<edgeMap[i].p<<" q="<<edgeMap[i].q<<"\n";
+   }
+#endif
 
    if(myrank != ROOT_PR){
       /* 0th process will not send anything */
@@ -129,6 +138,10 @@ int pbuff,qbuff;
 
 #if _DBG_
    eGraph.printLast();
+#endif
+#if _DBG_
+   cout<<"Printing the Graph before Redistributing I have \n";
+   eGraph.printGraph();
 #endif
 
    /* Updating edgeMap */
@@ -148,7 +161,7 @@ int pbuff,qbuff;
 
 #if _DBG_
    cout<<"**PRINTING EDGE MAP**\n";
-   for(int i=0;i<(int)edgeMap.size();i++){
+   for(unsigned int i=0;i<edgeMap.size();i++){
       cout<<"For process ="<<i<<" p="<<edgeMap[i].p<<" q="<<edgeMap[i].q<<"\n";
    }
 #endif
@@ -174,12 +187,16 @@ int pbuff,qbuff;
    DistGraph tcGraph(startk,endk,NVertex);//Transitive Closure Graph
 /* Initilizing DistGraph */
 
+
+
 #if _DBG_
    cout<<"Initilizing Transitive closure graph \n";
 #endif
-   for(EdgeGraph::iterator it = eGraph.begin();it != eGraph.end();it++){
+   
+   for(map < int,vector <int> >::iterator it = eGraph.begin();it != eGraph.end();it++){
+      cout<<"Getting Edge for "<<it->first<<"\n";
       vector <int> *edge = eGraph.getEdge(it->first);
-      for(int i=0;i<(*edge).size();i++){
+      for(unsigned int i=0;i<(*edge).size();i++){
 #if _DBG_
          cout<<"putting Edge ("<<it->first<<","<<(*edge)[i]<<")\n";
 #endif
@@ -287,10 +304,10 @@ int pbuff,qbuff;
                }
             }
 
-            int newNodes;
-            newNodes = (int) toSendBuff.size();
+            unsigned int newNodes;
+            newNodes = toSendBuff.size();
             MPI_Send(&newNodes,1,MPI_INT,i,GRAPH_TAG,MPI_COMM_WORLD);
-            for(int temp=0;temp < newNodes; temp++){
+            for(unsigned int temp=0;temp < newNodes; temp++){
                toSendGraph.sendEdges(toSendBuff[temp],i);
             }
 

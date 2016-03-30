@@ -42,7 +42,7 @@ class DistGraph{
 
 
 		bool pushEdge(int p,int q){/* Returns True if pushEdge Created New Edge, can be used for finding if next round is needed*/
-			int i,j;
+
 #if _DBG_
 		cout<<"put Edge ("<<p<<','<<q<<")\n";
 #endif

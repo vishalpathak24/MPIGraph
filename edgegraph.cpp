@@ -42,6 +42,10 @@ class EdgeGraph{
 		}
 
 		void pushEdge(int p,int q){
+#if _DBG_
+			cout<<"Pushing Edge as ("<<p<<','<<q<<")\n";
+#endif
+
 			if(!this->hasEdge(p,q)){
 				EdgeList[p].push_back(q);
 				if (p >= lastp){
@@ -77,40 +81,39 @@ class EdgeGraph{
 		}
 
 		int sendEdges(int edgeNo,int d_id,MPI_Comm comm = MPI_COMM_WORLD){
+
 			vector <int> *edge = pullEdge(edgeNo);
 			if(edge != NULL){
-				int len;
+				unsigned int len;
 				len = (*edge).size();
 				assert(MPI_Send(&edgeNo,1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
-				assert(MPI_Send(&len,1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
-				for (int i = 0; i < len ; i++){
+				assert(MPI_Send(&len,1,MPI_UNSIGNED,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
+				for (unsigned int i = 0; i < len ; i++){
 				assert(MPI_Send(&((*edge)[i]),1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
 #if _DBG_
 				cout<<"Sending ("<<edgeNo<<","<<(*edge)[i]<<")\n";
 #endif
 				}
-				/* clearing edge sent */
-				(*edge).clear();
-				iterator it = EdgeList.find(edgeNo);
-				EdgeList.erase(it);
-
 
 			}else{
 				int buf = -1;
 				assert(MPI_Send(&buf,1,MPI_INT,d_id,GRAPH_TAG,comm) == MPI_SUCCESS );
 			}
+			/* Edge is sent but Not cleared */ 
+			/*Explicit call for clear is required as Send Gets an issue */
 			return MPI_SUCCESS;
 		}
 
 		int recvEdges(int s_id,MPI_Comm comm = MPI_COMM_WORLD){
-			int buff,len,p,q;
+			int buff,p,q;
+			unsigned int len;
 			MPI_Status status;
 			assert(MPI_Recv(&buff,1,MPI_INT,s_id,GRAPH_TAG,comm,&status) == MPI_SUCCESS);
 			if(buff != -1){
 				/* Not NULL CASE */
 				p = buff;
-				assert(MPI_Recv(&len,1,MPI_INT,s_id,GRAPH_TAG,comm,&status) == MPI_SUCCESS);
-				for(int i = 0 ; i < len ; i++){
+				assert(MPI_Recv(&len,1,MPI_UNSIGNED,s_id,GRAPH_TAG,comm,&status) == MPI_SUCCESS);
+				for(unsigned int i = 0 ; i < len ; i++){
 					assert(MPI_Recv(&q,1,MPI_INT,s_id,GRAPH_TAG,comm,&status) == MPI_SUCCESS);
 					this->pushEdge(p,q);
 #if _DBG_
@@ -139,12 +142,14 @@ class EdgeGraph{
 	
 	void printGraph(){
 		
-		for(iterator it = EdgeList.begin(); it != EdgeList.end(); it++){
-			int len;
-			len = (int) it->second.size();
-			for(int i=0;i<len;i++){
+		for(map<int,vector <int> >::iterator it = EdgeList.begin(); it != EdgeList.end(); it++){
+			unsigned int len;
+			int x;
+			len = (it->second).size();
+			for(unsigned int i=0;i<len;i++){
 				cout<<"("<<it->first<<','<<it->second[i]<<") \n";
 			}
+			cin>>x;
 		}
 
 	}
@@ -153,5 +158,16 @@ class EdgeGraph{
 		cout<<"My last node is ("<<lastp<<","<<lastq<<")\n";
 	}
 
+	int clearEdge(int edgeNo){
+		/* clearing edge sent */
+		vector <int> *edge = pullEdge(edgeNo);
+		if(edge != NULL)		
+			(*edge).~vector<int>(); //Destructing vector object
+		
+		iterator it = EdgeList.find(edgeNo);
+		EdgeList.erase(it);
+
+		return 0;
+	}
 
 };

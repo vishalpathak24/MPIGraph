@@ -93,9 +93,9 @@ class EdgeGraph{
 		int count =0;
 
 		for(iterator it = EdgeList.begin(); it != EdgeList.end(); it++){
-			int len;
-			len = (int) it->second.size();
-			for(int i=0;i<len;i++){
+			unsigned int len;
+			len = it->second.size();
+			for(unsigned int i=0;i<len;i++){
 				cout<<"("<<it->first<<','<<it->second[i]<<") \n";
 				file<<it->first<<" "<<it->second[i]<<'\n';
 				count++;
