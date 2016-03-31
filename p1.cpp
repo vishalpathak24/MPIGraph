@@ -101,11 +101,6 @@ int main(int argc, char** argv){
    graph_file.close();
 
 /* Redistributing Edges */
-#if _DBG_
-   cout<<"Printing the Graph before Redistributing I have \n";
-   eGraph.printGraph();
-#endif
-
 int pbuff,qbuff;
    
    for(int i=0;i<nprocs;i++){
@@ -120,6 +115,7 @@ int pbuff,qbuff;
       e.q = qbuff;
       edgeMap.push_back(e);  
    }
+
 #if _DBG_
    cout<<"**PRINTING TEMP EDGE MAP**\n";
    for(unsigned int i=0;i<edgeMap.size();i++){
@@ -136,13 +132,18 @@ int pbuff,qbuff;
       eGraph.recvEdges(myrank+1);
    }
 
-#if _DBG_
-   eGraph.printLast();
-#endif
-#if _DBG_
-   cout<<"Printing the Graph before Redistributing I have \n";
+MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
+/* Clearing the sent Edges from indiviual Process */
+   if(myrank != ROOT_PR){
+      /* 0th process will not clear anything */
+       eGraph.clearEdge(edgeMap[myrank-1].p); //Sends -1 signal if nothing to be sent
+   }
+
+/*#if _DBG_
+   cout<<"Printing the Graph after Redistributing I have \n";
    eGraph.printGraph();
-#endif
+#endif*/
+//eGraph.printGraph();
 
    /* Updating edgeMap */
    edgeMap.clear();
@@ -188,19 +189,19 @@ int pbuff,qbuff;
 /* Initilizing DistGraph */
 
 
-
 #if _DBG_
    cout<<"Initilizing Transitive closure graph \n";
-#endif
-   
+#endif   
+
    for(map < int,vector <int> >::iterator it = eGraph.begin();it != eGraph.end();it++){
       cout<<"Getting Edge for "<<it->first<<"\n";
-      vector <int> *edge = eGraph.getEdge(it->first);
-      for(unsigned int i=0;i<(*edge).size();i++){
+      unsigned int len;
+      len = (it->second).size();
+      for(unsigned int i=0;i<len;i++){
 #if _DBG_
-         cout<<"putting Edge ("<<it->first<<","<<(*edge)[i]<<")\n";
+         cout<<"putting Edge ("<<it->first<<","<<it->second[i]<<")\n";
 #endif
-         tcGraph.pushEdge(it->first,(*edge)[i]);
+         tcGraph.pushEdge(it->first,it->second[i]);
       }
    }
 

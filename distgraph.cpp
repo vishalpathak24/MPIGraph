@@ -32,11 +32,11 @@ class DistGraph{
 			lastq=-1;
 			this->k_max = k_max;
 			this->k_min = k_min;
-			EdgeList = (bool **)calloc((k_max-k_min)+1,sizeof(bool)); //initialize with zero
+			EdgeList = new bool *[(k_max-k_min)+1]();//(bool **)calloc((k_max-k_min)+1,sizeof(bool)); //initialize with zero
 			for(int i=0;i<=(k_max-k_min);i++)
-				EdgeList[i] = (bool *)calloc(N_Vertex,sizeof(bool));
+				EdgeList[i] = new bool[N_Vertex]();//(bool *)calloc(N_Vertex,sizeof(bool));
 
-			NEdges = (int *)calloc((k_max-k_min),sizeof(int)); //initialize with zero
+			NEdges = new int[(k_max-k_min)+1];//(int *)calloc((k_max-k_min)+1,sizeof(int)); //initialize with zero
 			this->N_Vertex = N_Vertex;
 		}
 

@@ -161,12 +161,12 @@ class EdgeGraph{
 	int clearEdge(int edgeNo){
 		/* clearing edge sent */
 		vector <int> *edge = pullEdge(edgeNo);
-		if(edge != NULL)		
-			(*edge).~vector<int>(); //Destructing vector object
-		
+		if(edge != NULL){		
+			(*edge).clear(); //Destructing vector object
+		}
 		iterator it = EdgeList.find(edgeNo);
-		EdgeList.erase(it);
-
+		if(it != EdgeList.end())
+			EdgeList.erase(it);
 		return 0;
 	}
 
