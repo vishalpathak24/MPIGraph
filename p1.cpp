@@ -177,7 +177,9 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
    endk = edgeMap[myrank].p;
 
 #if _DBG_
+   int x;
    cout<<"My startk = "<<startk<<"\n my endk = "<<endk<<endl;
+   cin>>x;
 #endif
 
 #if _CLUSTER_OUT_
