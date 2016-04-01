@@ -11,13 +11,14 @@
 #include <time.h>
 
 /** PROGRAM COMTROL DEFS **/
-#define _DBG_ 1
+#define _DBG_ 0
 #define _TIMECALC_ 1
-#define _CLUSTER_OUT_ 0
+#define _CLUSTER_OUT_ 1
 
 /** DEFINING CONSTANTS **/
 #define ROOT_PR 0
-
+#define GRAPH_TAG 2
+#define READY_RECV_TAG 1
 
 #define _USE_HEADER_
 #include "edgegraph.cpp"
@@ -49,6 +50,7 @@ int main(int argc, char** argv){
    char buff[30];
    sprintf(buff,"./EdgeOutput/status_%d.txt",myrank);
    ofstream myStatus((const char*)buff,ofstream::out);
+   
    if(myrank == ROOT_PR){
       globalStatus.open("./EdgeOutput/status.txt",ofstream::out);
       globalStatus<<"We have started \n";
@@ -244,6 +246,7 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
    }
 #endif
       if(nxtRound == true){ /* if we prepared that nextRound is not required this process don't have any new edges to process */
+         
          nxtRound = false;
          
          for(int k=startk;k<=endk;k++){
@@ -277,12 +280,25 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
 #if _DBG_
       cout<<"Sending and receiving New Edges prepared.. \n";
 #endif
+
+#if _CLUSTER_OUT_
+      cout<<"I "<<myrank<<"at Sending/Reciving Message for Round\n";
+#endif
+
       for(int i=0;i<nprocs;i++){
          if(myrank == i){
+
+            cout<<"I "<<myrank<<"Reciving Message for Round\n";
+
             for(int j=0;j<nprocs;j++){
                if(myrank != j){//recvEdges from the process except itself
                   int newNodes;
                   MPI_Status status;
+                  /* Sending Process j signal that its ready to receive data */
+                  int tempBuff=1;
+                  MPI_Send(&tempBuff,1,MPI_INT,j,READY_RECV_TAG,MPI_COMM_WORLD);
+                  cout<<"I "<<myrank<<" Sent Signal Ready Recv to "<<j<<"\n";
+ 
                   MPI_Recv(&newNodes,1,MPI_INT,j,GRAPH_TAG,MPI_COMM_WORLD,&status);
                   for(int temp = 0;temp<newNodes;temp++){
                      flagBuff=tcGraph.recvEdges(j);
@@ -290,6 +306,9 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
                   }
                }
             }
+#if _CLUSTER_OUT_
+      cout<<"I "<<myrank<<"Reciving Message done for Round\n";
+#endif
          }else{
             vector <int> toSendBuff; 
             int startIndex,endIndex;
@@ -309,6 +328,12 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
 
             unsigned int newNodes;
             newNodes = toSendBuff.size();
+            /* Waiting for Signal Before Sending Data */
+            int tempBuff;
+            MPI_Status status;
+            MPI_Recv(&tempBuff,1,MPI_INT,i,READY_RECV_TAG,MPI_COMM_WORLD,&status);
+            cout<<"I "<<myrank<<" Recv Signal Ready Recv from "<<i<<"\n";
+
             MPI_Send(&newNodes,1,MPI_INT,i,GRAPH_TAG,MPI_COMM_WORLD);
             for(unsigned int temp=0;temp < newNodes; temp++){
                toSendGraph.sendEdges(toSendBuff[temp],i);
