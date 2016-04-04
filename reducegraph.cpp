@@ -114,12 +114,12 @@ class EdgeGraph{
 
 int main(){
 	string path = "./facebook_combined.txt"; 
-	int Nlines = 88234;
+	//int Nlines = 88234;
 	//int Nedges = 2*88234;
-   	int NVertex = 500;
+   	int NVertex = 200;
    	int NedgesMade;
    	ifstream graphFile("./facebook_combined.txt",ifstream::in);
-   	ofstream newgraphFile("./facebook_combined_N500.txt",ofstream::out);
+   	ofstream newgraphFile("./facebook_combined_N200.txt",ofstream::out);
    	EdgeGraph graph;
    	do{
    		int p ,q;
