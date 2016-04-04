@@ -18,11 +18,12 @@
 
 /** DEFINING CONSTANTS **/
 #define ROOT_PR 0
-
+#define GRAPH_TAG 2
+#define READY_RECV_TAG 1
 
 #define _USE_HEADER_
 #include "edgegraph.cpp"
-
+#include "distgraph.cpp"
 
 
 /** methods **/
@@ -56,8 +57,8 @@ int main(int argc, char** argv){
    }
 #endif
 
-   string path = "./facebook_combined.txt";//int Nedges = 88234;
-   int NVertex = 4039;
+   string path = "./facebook_combined_N500_E8674.txt";//int Nedges = 88234;
+   int NVertex = 500;
 
    /*string path = "./small_graph.txt"; //int Nedges = 16;
    int NVertex = 9;*/
@@ -109,13 +110,37 @@ int main(int argc, char** argv){
 #endif
 
    MPI_Barrier(MPI_COMM_WORLD);
+/* creating copy of Edge Graph */
+   DistGraph tcGraph(startk,endk,NVertex);//Transitive Closure Graph
+/* Initilizing DistGraph */
+#if _DBG_
+   cout<<"Initilizing Transitive closure graph \n";
+#endif   
+
+   for(map < int,vector <int> >::iterator it = eGraph.begin();it != eGraph.end();it++){
+      cout<<"Getting Edge for "<<it->first<<"\n";
+      unsigned int len;
+      len = (it->second).size();
+      for(unsigned int i=0;i<len;i++){
+#if _DBG_
+         cout<<"putting Edge ("<<it->first<<","<<it->second[i]<<")\n";
+#endif
+         tcGraph.pushEdge(it->first,it->second[i]);
+      }
+   }
+
+
+#if _DBG_
+   cout<<"Initilization Transitive closure graph Done \n";
+#endif
 
 /* creating copy of Edge Graph */
-   EdgeGraph tcGraph = eGraph;   //Transitive Closure Graph
-   EdgeGraph tempGraph;          //Keeps generated Edges for further comparison
+   //EdgeGraph tempGraph;          //Keeps generated Edges for further comparison
    EdgeGraph toSendGraph;        // Temp Graph keeping edges to be sent
-   bool nxtRound = false;
-   
+   bool nxtRound = true,flagBuff;
+   bool nxtRoundBuff = false;
+
+
 #if _TIMECALC_
    MPI_Barrier(MPI_COMM_WORLD);
    double startTime;
@@ -140,6 +165,8 @@ int main(int argc, char** argv){
    }
 #endif
 
+   if(nxtRound == true){ /* if we prepared that nextRound is not required this process don't have any new edges to process */
+      
       nxtRound = false;
       
       for(int k=startk;k<=endk;k++){
@@ -155,11 +182,11 @@ int main(int argc, char** argv){
                         tcGraph.pushEdge(i,j);
                         nxtRound = true;
                      }else{
-                        if(!tempGraph.hasEdge(i,j)){
-                           tempGraph.pushEdge(i,j);
+                        //if(!tempGraph.hasEdge(i,j)){
+                        //   tempGraph.pushEdge(i,j);
                            toSendGraph.pushEdge(i,j);
-                           nxtRound = true;
-                        }
+                        //   nxtRound = true; Next Round will be decided in end of receiving edges
+                        //}
                      }
                      
                   }
@@ -167,19 +194,40 @@ int main(int argc, char** argv){
             }
          }
       }
-              
+   }
       /* Sending/Recv of Edges prepared */
+#if _DBG_
+      cout<<"Sending and receiving New Edges prepared.. \n";
+#endif
+
+#if _CLUSTER_OUT_
+      cout<<"I "<<myrank<<"at Sending/Reciving Message for Round\n";
+#endif
+
       for(int i=0;i<nprocs;i++){
          if(myrank == i){
+
+            cout<<"I "<<myrank<<"Reciving Message for Round\n";
+
             for(int j=0;j<nprocs;j++){
                if(myrank != j){//recvEdges from the process except itself
                   int newNodes;
                   MPI_Status status;
+                  /* Sending Process j signal that its ready to receive data */
+                  int tempBuff=1;
+                  MPI_Send(&tempBuff,1,MPI_INT,j,READY_RECV_TAG,MPI_COMM_WORLD);
+                  cout<<"I "<<myrank<<" Sent Signal Ready Recv to "<<j<<"\n";
+
                   MPI_Recv(&newNodes,1,MPI_INT,j,GRAPH_TAG,MPI_COMM_WORLD,&status);
-                  for(int temp = 0;temp<newNodes;temp++)
-                     tcGraph.recvEdges(j); 
+                  for(int temp = 0;temp<newNodes;temp++){
+                     flagBuff=tcGraph.recvEdges(j);
+                     nxtRound = nxtRound || flagBuff; 
+                  }
                }
             }
+#if _CLUSTER_OUT_
+      cout<<"I "<<myrank<<"Reciving Message done for Round\n";
+#endif
          }else{
             vector <int> toSendBuff; 
             int startIndex,endIndex;
@@ -198,10 +246,16 @@ int main(int argc, char** argv){
                }
             }
 
-            int newNodes;
-            newNodes = (int) toSendBuff.size();
+            unsigned int newNodes;
+            newNodes = toSendBuff.size();
+            /* Waiting for Signal Before Sending Data */
+            int tempBuff;
+            MPI_Status status;
+            MPI_Recv(&tempBuff,1,MPI_INT,i,READY_RECV_TAG,MPI_COMM_WORLD,&status);
+            cout<<"I "<<myrank<<" Recv Signal Ready Recv from "<<i<<"\n";
+
             MPI_Send(&newNodes,1,MPI_INT,i,GRAPH_TAG,MPI_COMM_WORLD);
-            for(int temp=0;temp < newNodes; temp++){
+            for(unsigned int temp=0;temp < newNodes; temp++){
                toSendGraph.sendEdges(toSendBuff[temp],i);
             }
 
@@ -213,14 +267,13 @@ int main(int argc, char** argv){
       toSendGraph.clear();
 
       /* Deciding of NextRound */ 
-      bool nxtRoundBuff;
+      nxtRoundBuff = false;
 #if _DBG_
       cout<<"nxtRound = "<<nxtRound<<'\n';
 #endif      
       MPI_Allreduce(&nxtRound,&nxtRoundBuff,1,MPI::BOOL,MPI_LOR,MPI_COMM_WORLD);
-      nxtRound = nxtRoundBuff;
 
-   }while(nxtRound==true);
+   }while(nxtRoundBuff==true);
 
 #if _CLUSTER_OUT_
    if(myrank == ROOT_PR){

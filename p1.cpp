@@ -57,8 +57,8 @@ int main(int argc, char** argv){
    }
 #endif
 
-   string path = "./facebook_combined_new.txt"; int Nedges = 2*88234;
-   int NVertex = 4039;
+   string path = "./facebook_combined_N500_E8674.txt"; int Nedges = 8674;
+   int NVertex = 500;
 
    /*string path = "./small_graph.txt"; int Nedges = 16;
    int NVertex = 9;*/
