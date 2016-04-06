@@ -18,7 +18,7 @@ class DistGraph{
 	private:
 		//map <int, vector <int> > EdgeList;
 		bool **EdgeList;
-		int *NEdges; //Number of Edges from a vertex btw (k_min to k_max)
+		int *NEdges_PVert; //Number of Edges from a vertex btw (k_min to k_max)
 
 	public:
 		int lastp;
@@ -26,6 +26,7 @@ class DistGraph{
 		int k_max;
 		int k_min;
 		int N_Vertex;
+		int N_Edges;
 
 		DistGraph(int k_min,int k_max,int N_Vertex){
 			lastp=-1;
@@ -36,8 +37,9 @@ class DistGraph{
 			for(int i=0;i<=(k_max-k_min);i++)
 				EdgeList[i] = new bool[N_Vertex]();//(bool *)calloc(N_Vertex,sizeof(bool));
 
-			NEdges = new int[(k_max-k_min)+1];//(int *)calloc((k_max-k_min)+1,sizeof(int)); //initialize with zero
+			NEdges_PVert = new int[(k_max-k_min)+1];//(int *)calloc((k_max-k_min)+1,sizeof(int)); //initialize with zero
 			this->N_Vertex = N_Vertex;
+			N_Edges = 0; 
 		}
 
 
@@ -51,14 +53,17 @@ class DistGraph{
 
 			if(p>= k_min && p<=k_max){/* P is btw k */
 				EdgeList[p-k_min][q] = true;
+				N_Edges++;
 			}else{
 				cout<<"THIS EDGE IS NOT MY RESPONSIBLITY .... Edge given to me ("<<p<<","<<q<<")\n";
 				exit(-1);
 			}
 
 
-			if(q>= k_min && q<=k_max)/* Symmetric data is kept by this process only */
+			if(q>= k_min && q<=k_max){/* Symmetric data is kept by this process only */
 				this->EdgeList[q-k_min][p] = true;
+				N_Edges++;
+			}
 			
 			if (p >= lastp){
 				lastp = p;
@@ -71,7 +76,7 @@ class DistGraph{
 			}
 
 			if(oldEdge != true){
-					NEdges[p-k_min]++;
+					NEdges_PVert[p-k_min]++;
 					return true;
 			}
 			return false;
@@ -122,4 +127,7 @@ class DistGraph{
 					cout<<"("<<k<<','<<j<<")\n";
 	}
 
+	int getTotalEdges(){
+		return N_Edges;
+	}
 };
