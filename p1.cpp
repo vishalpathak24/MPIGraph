@@ -57,11 +57,11 @@ int main(int argc, char** argv){
    }
 #endif
 
-   string path = "./facebook_combined_N1000_E19780.txt"; int Nedges = 19780;
-   int NVertex = 1000;
+   /*string path = "./facebook_combined_N1000_E19780.txt"; int Nedges = 19780;
+   int NVertex = 1000;*/
 
-   /*string path = "./small_graph.txt"; int Nedges = 16;
-   int NVertex = 9;*/
+   string path = "./small_graph.txt"; int Nedges = 16;
+   int NVertex = 9;
 
    int EdgePP = Nedges/nprocs; //Edges per Process;
    int rEdges = Nedges - EdgePP*nprocs;	//Remainder Edges;
@@ -186,7 +186,7 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
 
 #if _CLUSTER_OUT_
    myStatus<<"My startk = "<<startk<<"\n my endk = "<<endk<<endl;
-   myStatus<<"D_K,N_Edges,TimeTaken";
+   myStatus<<"D_K,N_Edges,TimeTaken\n";
 #endif
 
 /* creating copy of Edge Graph */
@@ -281,6 +281,14 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
          }
       }        
       /* Sending/Recv of Edges prepared */
+
+#if _CLUSTER_OUT_
+   #if _TIMECALC_
+      double myendTime = MPI_Wtime();
+      myStatus<<endk-startk<<","<<totalEdges<<","<<myendTime-mystartTime<<"\n";
+   #endif
+#endif
+
 #if _DBG_
       cout<<"Sending and receiving New Edges prepared.. \n";
 #endif
@@ -354,12 +362,9 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
       nxtRoundBuff=false;
 #if _DBG_
       cout<<"My nxtRound = "<<nxtRound<<'\n';
-#endif      
-      MPI_Allreduce(&nxtRound,&nxtRoundBuff,1,MPI::BOOL,MPI_LOR,MPI_COMM_WORLD);
-#if _CLUSTER_OUT_
-      double myendTime = MPI_Wtime();
-      myStatus<<endk-startk<<","<<totalEdges<<","<<myendTime-mystartTime<<"\n";
 #endif
+      MPI_Allreduce(&nxtRound,&nxtRoundBuff,1,MPI::BOOL,MPI_LOR,MPI_COMM_WORLD);
+
 
    }while(nxtRoundBuff==true);
 

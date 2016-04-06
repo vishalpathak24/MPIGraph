@@ -53,7 +53,6 @@ class DistGraph{
 
 			if(p>= k_min && p<=k_max){/* P is btw k */
 				EdgeList[p-k_min][q] = true;
-				N_Edges++;
 			}else{
 				cout<<"THIS EDGE IS NOT MY RESPONSIBLITY .... Edge given to me ("<<p<<","<<q<<")\n";
 				exit(-1);
@@ -62,7 +61,9 @@ class DistGraph{
 
 			if(q>= k_min && q<=k_max){/* Symmetric data is kept by this process only */
 				this->EdgeList[q-k_min][p] = true;
-				N_Edges++;
+					if(oldEdge != true){
+						N_Edges++;
+					}
 			}
 			
 			if (p >= lastp){
@@ -77,6 +78,7 @@ class DistGraph{
 
 			if(oldEdge != true){
 					NEdges_PVert[p-k_min]++;
+					N_Edges++;
 					return true;
 			}
 			return false;
