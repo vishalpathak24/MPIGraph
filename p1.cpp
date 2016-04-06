@@ -50,15 +50,15 @@ int main(int argc, char** argv){
    char buff[30];
    sprintf(buff,"./EdgeOutput/status_%d.txt",myrank);
    ofstream myStatus((const char*)buff,ofstream::out);
-   
+
    if(myrank == ROOT_PR){
       globalStatus.open("./EdgeOutput/status.txt",ofstream::out);
       globalStatus<<"We have started \n";
    }
 #endif
 
-   string path = "./facebook_combined_N200_E1924.txt"; int Nedges = 1924;
-   int NVertex = 200;
+   string path = "./facebook_combined_N1000_E19780.txt"; int Nedges = 19780;
+   int NVertex = 1000;
 
    /*string path = "./small_graph.txt"; int Nedges = 16;
    int NVertex = 9;*/
@@ -186,6 +186,7 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
 
 #if _CLUSTER_OUT_
    myStatus<<"My startk = "<<startk<<"\n my endk = "<<endk<<endl;
+   myStatus<<"D_K,N_Edges,TimeTaken";
 #endif
 
 /* creating copy of Edge Graph */
@@ -240,6 +241,9 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
 #endif
 
 #if _CLUSTER_OUT_
+   double mystartTime;
+   mystartTime = MPI_Wtime();
+   int totalEdges = tcGraph.getTotalEdges();
    if(myrank == ROOT_PR){
       globalStatus<<"Round "<<++roundCount<<" started \n";
       cout<<"Round "<<roundCount<<" started \n";
@@ -352,6 +356,10 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
       cout<<"My nxtRound = "<<nxtRound<<'\n';
 #endif      
       MPI_Allreduce(&nxtRound,&nxtRoundBuff,1,MPI::BOOL,MPI_LOR,MPI_COMM_WORLD);
+#if _CLUSTER_OUT_
+      double myendTime = MPI_Wtime();
+      myStatus<<endk-startk<<","<<totalEdges<<","<<myendTime-mystartTime<<"\n";
+#endif
 
    }while(nxtRoundBuff==true);
 
