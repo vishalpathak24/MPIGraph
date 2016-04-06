@@ -1,4 +1,4 @@
 #!/bin/bash
-rm EdegeOutput/*
+rm EdgeOutput/*
 rm VertexOutput/*
 rm Timing*
