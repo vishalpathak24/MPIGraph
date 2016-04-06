@@ -81,6 +81,7 @@ int main(int argc, char** argv){
 
 #if _CLUSTER_OUT_
    myStatus<<"My startk = "<<startk<<"\n my endk = "<<endk<<endl;
+   myStatus<<"D_K,N_Edges,TimeTaken\n";
 #endif
 
    ifstream graph_file;
@@ -159,8 +160,10 @@ int main(int argc, char** argv){
 #endif
 
 #if _CLUSTER_OUT_
+   double mystartTime;
+   mystartTime = MPI_Wtime();
+   int totalEdges = tcGraph.getTotalEdges();
    if(myrank == ROOT_PR){
-      globalStatus<<"Round "<<++roundCount<<" started \n";
       cout<<"Round "<<roundCount<<" started \n";
    }
 #endif
@@ -196,6 +199,14 @@ int main(int argc, char** argv){
       }
    }
       /* Sending/Recv of Edges prepared */
+
+#if _CLUSTER_OUT_
+   #if _TIMECALC_
+      double myendTime = MPI_Wtime();
+      myStatus<<endk-startk<<","<<totalEdges<<","<<myendTime-mystartTime<<"\n";
+   #endif
+#endif
+
 #if _DBG_
       cout<<"Sending and receiving New Edges prepared.. \n";
 #endif
@@ -273,6 +284,15 @@ int main(int argc, char** argv){
 #endif      
       MPI_Allreduce(&nxtRound,&nxtRoundBuff,1,MPI::BOOL,MPI_LOR,MPI_COMM_WORLD);
 
+#if _CLUSTER_OUT_
+   #if _TIMECALC_
+      if(myrank == ROOT_PR){
+         double myRoundEndTime = MPI_Wtime();
+         globalStatus<<"Round "<<++roundCount<<" took "<<myRoundEndTime-mystartTime<<"\n";
+      }
+   #endif
+#endif
+
    }while(nxtRoundBuff==true);
 
 #if _CLUSTER_OUT_
@@ -303,9 +323,6 @@ int main(int argc, char** argv){
    cout<<"Rounds Complete... X \n Graph is \n";
    tcGraph.printGraph();
 #endif
-
-   
-
 
    MPI_Finalize();
 	return 0;

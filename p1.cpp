@@ -57,11 +57,11 @@ int main(int argc, char** argv){
    }
 #endif
 
-   /*string path = "./facebook_combined_N1000_E19780.txt"; int Nedges = 19780;
-   int NVertex = 1000;*/
+   string path = "./facebook_combined_N500_E8674.txt"; int Nedges = 8674;
+   int NVertex = 500;
 
-   string path = "./small_graph.txt"; int Nedges = 16;
-   int NVertex = 9;
+   /*string path = "./small_graph.txt"; int Nedges = 16;
+   int NVertex = 9;*/
 
    int EdgePP = Nedges/nprocs; //Edges per Process;
    int rEdges = Nedges - EdgePP*nprocs;	//Remainder Edges;
@@ -81,6 +81,7 @@ int main(int argc, char** argv){
 		   startLine = startLine + EdgePP;
 	   }
    }
+
 #if _DBG_
    cout<<"I will start for Line = "<<startLine;
 #endif
@@ -179,9 +180,7 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
    endk = edgeMap[myrank].p;
 
 #if _DBG_
-   int x;
    cout<<"My startk = "<<startk<<"\n my endk = "<<endk<<endl;
-   cin>>x;
 #endif
 
 #if _CLUSTER_OUT_
@@ -245,7 +244,6 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
    mystartTime = MPI_Wtime();
    int totalEdges = tcGraph.getTotalEdges();
    if(myrank == ROOT_PR){
-      globalStatus<<"Round "<<++roundCount<<" started \n";
       cout<<"Round "<<roundCount<<" started \n";
    }
 #endif
@@ -365,6 +363,14 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
 #endif
       MPI_Allreduce(&nxtRound,&nxtRoundBuff,1,MPI::BOOL,MPI_LOR,MPI_COMM_WORLD);
 
+#if _CLUSTER_OUT_
+   #if _TIMECALC_
+      if(myrank == ROOT_PR){
+         double myRoundEndTime = MPI_Wtime();
+         globalStatus<<"Round "<<++roundCount<<" took "<<myRoundEndTime-mystartTime<<"\n";
+      }
+   #endif
+#endif
 
    }while(nxtRoundBuff==true);
 
@@ -390,10 +396,7 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
       timingFile<<nNodes<<','<<nprocs<<','<<endTime-startTime<<'\n';
       timingFile.close();
    }
-   MPI_Barrier(MPI_COMM_WORLD);
 #endif
-
-
 
 #if _DBG_
    cout<<"Rounds Complete... X \n Graph is \n";
