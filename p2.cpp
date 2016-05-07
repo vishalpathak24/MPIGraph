@@ -57,8 +57,8 @@ int main(int argc, char** argv){
    }
 #endif
 
-   string path = "./facebook_combined_N1000_E19780.txt";//int Nedges = 88234;
-   int NVertex = 1000;
+   string path = "./facebook_combined_N500_E8674.txt";//int Nedges = 88234;
+   int NVertex = 500;
 
    /*string path = "./small_graph.txt"; //int Nedges = 16;
    int NVertex = 9;*/
@@ -197,15 +197,15 @@ int main(int argc, char** argv){
             }
          }
       }
-   }
-      /* Sending/Recv of Edges prepared */
-
+   /* Only write when we did a calculation */
 #if _CLUSTER_OUT_
    #if _TIMECALC_
       double myendTime = MPI_Wtime();
       myStatus<<endk-startk<<","<<totalEdges<<","<<myendTime-mystartTime<<"\n";
    #endif
 #endif
+
+   }
 
 #if _DBG_
       cout<<"Sending and receiving New Edges prepared.. \n";

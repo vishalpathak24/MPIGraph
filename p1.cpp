@@ -57,8 +57,8 @@ int main(int argc, char** argv){
    }
 #endif
 
-   string path = "./facebook_combined_N1000_E19780.txt"; int Nedges = 19780;
-   int NVertex = 1000;
+   string path = "./facebook_combined_N500_E8674.txt"; int Nedges = 8674;
+   int NVertex = 500;
 
    /*string path = "./small_graph.txt"; int Nedges = 16;
    int NVertex = 9;*/
@@ -277,15 +277,17 @@ MPI_Barrier(MPI_COMM_WORLD); //Wait for every one to complete send and Receive
                }
             }
          }
-      }        
-      /* Sending/Recv of Edges prepared */
-
+/* Only write when we did a calculation */
 #if _CLUSTER_OUT_
    #if _TIMECALC_
       double myendTime = MPI_Wtime();
       myStatus<<endk-startk<<","<<totalEdges<<","<<myendTime-mystartTime<<"\n";
    #endif
 #endif
+
+      }        
+      /* Sending/Recv of Edges prepared */
+
 
 #if _DBG_
       cout<<"Sending and receiving New Edges prepared.. \n";
